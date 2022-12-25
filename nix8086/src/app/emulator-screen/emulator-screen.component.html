@@ -1,0 +1,3 @@
+<div id="EmulatorScreen" *ngIf="getEmulatorState()">
+    <div *ngFor="let Cell of ScreenCell" class="ScreenCell" style="background-color: {{ScreenColors[Cell.BackgroundColor]}}">{{Cell.Character}}</div>
+</div>
