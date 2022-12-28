@@ -1,12 +1,11 @@
-import { Injectable } from '@angular/core';
-import { emulatorTurnOn, emulatorStatus } from './emulator-screen/emulator-screen.component';
+import { Injectable, NgZone } from '@angular/core';
+import { CpuService, setDiskImage, diskImageAcquired} from './cpu.service';
 
-//@ts-ignore: Object is possibly 'null'
-async function getValue(myPromise: Promise<any>, Buffer): void 
+async function getValue(myPromise: Promise<any>): Promise<any>
 {
   let value = await myPromise as ArrayBuffer;
   value = new Uint8Array(value);
-  Buffer = value;
+  return value;
 }
 
 @Injectable({
@@ -14,20 +13,24 @@ async function getValue(myPromise: Promise<any>, Buffer): void
 })
 
 export class FilereaderService {
-  constructor() { 
+
+  // private async initGivenFunction(givenFunction: Function, param1: any)
+  // {
+  //   while(1)
+  //     givenFunction(param1);
+  // }
+
+  constructor(EmulatorCpu: CpuService, givenFunction: Function, zone: NgZone){
     const fileSelector = document.getElementById('file-select');
-    fileSelector!.addEventListener('change', (event) => {
+    fileSelector!.addEventListener('change', async (event) => {
         const fileList = (event!.target as HTMLInputElement)!.files;
         let tmp = (fileList as FileList)[0].arrayBuffer();
-        let uga;
-        getValue(tmp, {uga});
-        console.log(emulatorStatus.currentStatus);
-        emulatorTurnOn();
-        console.log(emulatorStatus.currentStatus);
+        setDiskImage(await getValue(tmp));
         const FilePicker = document.getElementById('file-select');
         FilePicker!.style.display = 'none';
-
+        setTimeout(() =>{givenFunction(EmulatorCpu, zone)}, 0);
     });
   }
+
 
 }

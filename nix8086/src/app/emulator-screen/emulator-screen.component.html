@@ -1,3 +1,4 @@
+<input type="file" id="file-select">
 <div id="EmulatorScreen" *ngIf="getEmulatorState()">
-    <div *ngFor="let Cell of ScreenCell" class="ScreenCell" style="background-color: {{ScreenColors[Cell.BackgroundColor]}}">{{Cell.Character}}</div>
+    <div *ngFor="let Cell of ScreenCell" class="ScreenCell" style="background-color: {{ScreenColors[Cell.backgroundColor]}}; color: {{ScreenColors[Cell.frontColor]}}; ">{{Cell.character}}</div>
 </div>
