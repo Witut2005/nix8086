@@ -1,23 +1,20 @@
 import { Component, OnInit, SimpleChanges, NgZone} from '@angular/core';
-import {FilereaderService} from '../filereader.service'
+import {FilereaderService, ScreenCellType} from '../filereader.service'
 import { waitUntil, WAIT_FOREVER } from 'async-wait-until';
 import { CpuService, setDiskImage, diskImageAcquired} from '../cpu.service';
-interface ScreenCellType 
-{
-  frontColor: number;
-  backgroundColor: number;
-  character: number;
-};
+import {jsPlumb} from 'jsplumb';
+
+
 const sleep = (ms:any) => {new Promise(r => setTimeout(r, ms))};
 
 export var emulatorStatus = {currentStatus: false};
 
-export function emulatorTurnOn(): void
+export async function emulatorTurnOn()
 {
-  // await waitUntil(() => {return diskImageAcquired() == true;}, {timeout: WAIT_FOREVER, intervalBetweenAttempts: 100}); 
-  // console.log(diskImageAcquired() == true); 
+  await waitUntil(() => {return diskImageAcquired() == true;}, {timeout: WAIT_FOREVER, intervalBetweenAttempts: 100}); 
+  console.log(diskImageAcquired() == true); 
   emulatorStatus.currentStatus = true;
-  // return emulatorStatus.currentStatus;
+  return emulatorStatus.currentStatus;
 }
 
 export function emulatorTurnOff(): void
@@ -34,9 +31,14 @@ export function emulatorTurnOff(): void
 
 export class EmulatorScreenComponent implements OnInit {
 
-  public ScreenCell: ScreenCellType[] = []
+  public ScreenCell: ScreenCellType[] = [];
   public ScreenColors: string[] = ["black", "blue", "green", "cyan", "red", "magenta", "brown", "lightgray", "darkgray", "lightblue", "lightgreen", "lightcyan", "lightcoral", "#FF77FF", "yellow", "white"];
   private EmulatorCpu: CpuService;
+
+  public screenCellReturn(aha:EmulatorScreenComponent): ScreenCellType[]
+  {
+    return aha.ScreenCell;
+  }
 
   public getEmulatorState(): boolean
   {
@@ -50,20 +52,17 @@ export class EmulatorScreenComponent implements OnInit {
 
   nixZone: NgZone;
 
-  private async emulatorLoop(EmulatorCpu: CpuService, zone: NgZone)
+  private async emulatorLoop(EmulatorCpu: CpuService, MemoryObject: ScreenCellType[])
   {
-    
-    // for(let i = 0; i < 5; i++)
-    while(true)
-    {
-      zone.runOutsideAngular(()=>{EmulatorCpu.getNextInstruction()});
-    }
+    while(await emulatorTurnOn() != true);
+    EmulatorCpu.getNextInstruction();
+    MemoryObject[0].backgroundColor = 0;
   }
   
 
   constructor(EmulatorCpu: CpuService, nixZone: NgZone){
     this.nixZone = nixZone;
-    this.EmulatorCpu= EmulatorCpu;
+    this.EmulatorCpu = EmulatorCpu;
     console.log(this.EmulatorCpu);
     for(let i = 0; i < 25 * 80; i++)
     {
@@ -74,12 +73,12 @@ export class EmulatorScreenComponent implements OnInit {
       this.ScreenCell[i].backgroundColor= tmp;
       this.ScreenCell[i].character = tmp;
     }
-    emulatorTurnOn();
   }
 
 
   ngOnInit(): void {
-    let FileReader = new FilereaderService(this.EmulatorCpu, this.emulatorLoop, this.nixZone);
+    let FileReader = new FilereaderService(this.emulatorLoop, this.EmulatorCpu, );
+
   }
 
 };

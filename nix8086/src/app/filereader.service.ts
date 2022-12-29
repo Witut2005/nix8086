@@ -1,5 +1,6 @@
-import { Injectable, NgZone } from '@angular/core';
+import { Injectable, NgZone, InjectionToken } from '@angular/core';
 import { CpuService, setDiskImage, diskImageAcquired} from './cpu.service';
+
 
 async function getValue(myPromise: Promise<any>): Promise<any>
 {
@@ -14,13 +15,8 @@ async function getValue(myPromise: Promise<any>): Promise<any>
 
 export class FilereaderService {
 
-  // private async initGivenFunction(givenFunction: Function, param1: any)
-  // {
-  //   while(1)
-  //     givenFunction(param1);
-  // }
 
-  constructor(EmulatorCpu: CpuService, givenFunction: Function, zone: NgZone){
+  constructor(givenFunction: Function, param: CpuService, param1: ScreenCellType){
     const fileSelector = document.getElementById('file-select');
     fileSelector!.addEventListener('change', async (event) => {
         const fileList = (event!.target as HTMLInputElement)!.files;
@@ -28,9 +24,14 @@ export class FilereaderService {
         setDiskImage(await getValue(tmp));
         const FilePicker = document.getElementById('file-select');
         FilePicker!.style.display = 'none';
-        setTimeout(() =>{givenFunction(EmulatorCpu, zone)}, 0);
+        setInterval(() => {givenFunction(param, param1);}, 500);
     });
   }
-
-
 }
+export interface ScreenCellType 
+{
+  frontColor: number;
+  backgroundColor: number;
+  character: number;
+};
+
