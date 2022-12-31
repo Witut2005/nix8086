@@ -16,7 +16,7 @@ async function getValue(myPromise: Promise<any>): Promise<any>
 export class FilereaderService {
 
 
-  constructor(givenFunction: Function, param: CpuService, param1: ScreenCellType){
+  constructor(eventToDispatch: Event){
     const fileSelector = document.getElementById('file-select');
     fileSelector!.addEventListener('change', async (event) => {
         const fileList = (event!.target as HTMLInputElement)!.files;
@@ -24,7 +24,7 @@ export class FilereaderService {
         setDiskImage(await getValue(tmp));
         const FilePicker = document.getElementById('file-select');
         FilePicker!.style.display = 'none';
-        setInterval(() => {givenFunction(param, param1);}, 500);
+        document.body.dispatchEvent(eventToDispatch);
     });
   }
 }
@@ -32,6 +32,6 @@ export interface ScreenCellType
 {
   frontColor: number;
   backgroundColor: number;
-  character: number;
+  character: string;
 };
 

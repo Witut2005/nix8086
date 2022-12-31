@@ -3,6 +3,7 @@ import {FilereaderService, ScreenCellType} from '../filereader.service'
 import { waitUntil, WAIT_FOREVER } from 'async-wait-until';
 import { CpuService, setDiskImage, diskImageAcquired} from '../cpu.service';
 import {jsPlumb} from 'jsplumb';
+import { cpuMemory } from '../opcode';
 
 
 const sleep = (ms:any) => {new Promise(r => setTimeout(r, ms))};
@@ -52,32 +53,44 @@ export class EmulatorScreenComponent implements OnInit {
 
   nixZone: NgZone;
 
-  private async emulatorLoop(EmulatorCpu: CpuService, MemoryObject: ScreenCellType[])
+  private async emulatorLoop(EmulatorCpu: CpuService)
   {
     while(await emulatorTurnOn() != true);
     EmulatorCpu.getNextInstruction();
-    MemoryObject[0].backgroundColor = 0;
+    let memoryPtr = 0xb8000; 
+    for(let i = 0xb8000; i < 0xb8000 + 80 * 25; i++, memoryPtr += 2)
+    {
+      this.ScreenCell[i - 0xb8000].backgroundColor = (cpuMemory[memoryPtr] & 0xF0) >> 4;
+      this.ScreenCell[i - 0xb8000].frontColor = (cpuMemory[memoryPtr] & 0xF);
+      this.ScreenCell[i - 0xb8000].character = String.fromCharCode(cpuMemory[memoryPtr+1]);
+    }
   }
   
 
   constructor(EmulatorCpu: CpuService, nixZone: NgZone){
     this.nixZone = nixZone;
     this.EmulatorCpu = EmulatorCpu;
-    console.log(this.EmulatorCpu);
     for(let i = 0; i < 25 * 80; i++)
     {
       let tmp = this.getRandomInt(15);
-      let omg: ScreenCellType = {frontColor: tmp, backgroundColor: tmp, character: tmp}
+      let omg: ScreenCellType = {frontColor: tmp, backgroundColor: tmp, character: String.fromCharCode(tmp)};
       this.ScreenCell.push(omg);
       this.ScreenCell[i].frontColor = tmp;
       this.ScreenCell[i].backgroundColor= tmp;
-      this.ScreenCell[i].character = tmp;
+      this.ScreenCell[i].character = String.fromCharCode(tmp);
     }
+    cpuMemory[0xb8000 - 2 + 80 * 25 * 2 ] = 0xF0;
+    cpuMemory[0xb8000 - 1 + 80 * 25 * 2 ] = 'c'.charCodeAt(0);
+
   }
 
-
   ngOnInit(): void {
-    let FileReader = new FilereaderService(this.emulatorLoop, this.EmulatorCpu, );
+    
+    const event = new CustomEvent('emulatorOk');
+    let FileReader = new FilereaderService(event);
+    document.body.addEventListener('emulatorOk', ()=>{
+      setInterval(()=>{this.emulatorLoop(this.EmulatorCpu)}, 1000);
+    });
 
   }
 

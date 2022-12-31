@@ -15,6 +15,7 @@ var diskImage: any = undefined;
 export function setDiskImage(givenBuffer: Uint8Array): void
 {
   diskImage = givenBuffer;
+  cpuMemory.fill(0, 0xFFFFF, 0);
   for(let i = 0; i < SECTOR_SIZE; i++)
     cpuMemory[BOOTSECTOR_MEMORY_SPACE + i] = diskImage[i];
 }

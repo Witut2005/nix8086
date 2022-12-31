@@ -12,6 +12,9 @@ body {
     padding: 0px;
     margin: 0px;
     display: inline-block;
+    text-align: center;
+    align-items: center;
+    font-size: 150%;
 }
 
 #MainEmulatorScreen {
