@@ -253,7 +253,13 @@ function sub()
 
 function sub_ax()
 {
+    if(CurrentOpcode.byte1.w)
+        Registers[ax] += CurrentOpcode.byte2.value + (CurrentOpcode.byte3 << 8);
+    
+    else
+        Registers[ax] += CurrentOpcode.byte2.value;
 
+    instructionPointer = 2 + CurrentOpcode.byte1.w;
 }
 
 function cs_override()
@@ -273,6 +279,13 @@ function xor()
 
 function xor_ax()
 {
+    if(CurrentOpcode.byte1.w)
+        Registers[ax] ^= CurrentOpcode.byte2.value + (CurrentOpcode.byte3 << 8);
+    
+    else
+        Registers[ax] ^= CurrentOpcode.byte2.value;
+
+    instructionPointer = 2 + CurrentOpcode.byte1.w;
 
 }
 
@@ -319,12 +332,16 @@ function decReg()
 
 function pushReg()
 {
-
+    cpuMemory[--Registers[sp]] = (Registers[CurrentOpcode.byte1.reg] & 0xFF00) >> 8;
+    cpuMemory[--Registers[sp]] = Registers[CurrentOpcode.byte1.reg] && 0xFF;
+    instructionPointer++;
 }
 
 function popReg()
 {
-
+    Registers[CurrentOpcode.byte1.reg] = cpuMemory[++Registers[sp]];
+    Registers[CurrentOpcode.byte1.reg] |= cpuMemory[++Registers[sp]] << 8;
+    instructionPointer++;
 }
 
 function jo(){}
@@ -353,7 +370,13 @@ function mov(){}
 function movsreg(){}
 function lea(){}
 function pop(){}
-function xchgReg(){}
+function xchgAccumulator()
+{
+    let tmp = Registers[ax];
+    Registers[ax] = Registers[CurrentOpcode.byte1.reg];
+    Registers[CurrentOpcode.byte1.reg] = tmp;
+}
+
 function cbw(){}
 function cwd(){}
 function callFar(){}
